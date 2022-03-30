@@ -1,0 +1,184 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "type": "object",
+    "definitions": {
+        "Id": {
+            "type": "string",
+            "pattern": "^ADR_\\d{4}$"
+        },
+        "LinkBase": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "ado-work-item",
+                        "web"
+                    ]
+                }
+            },
+            "required": [
+                "kind"
+            ]
+        },
+        "AzureDevOpsWorkItemLink": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/LinkBase"
+                },
+                {
+                    "properties": {
+                        "kind": {
+                            "const": "ado-work-item"
+                        },
+                        "id": {
+                            "type": "string",
+                            "pattern": "^#\\d+"
+                        }
+                    },
+                    "required": [
+                        "id"
+                    ],
+                    "additionalProperties": false
+                }
+            ]
+        },
+        "WebLink": {
+            "allOf": [
+                {
+                    "$ref": "#/definitions/LinkBase"
+                },
+                {
+                    "properties": {
+                        "title": {
+                            "type": "string",
+                            "maxLength": 60
+                        },
+                        "kind": {
+                            "const": "web"
+                        },
+                        "url": {
+                            "type": "string",
+                            "format": "uri"
+                        }
+                    },
+                    "required": [
+                        "title",
+                        "url"
+                    ],
+                    "additionalProperties": false
+                }
+            ]
+        }
+    },
+    "properties": {
+        "$schema": {
+            "type": "string"
+        },
+        "id": {
+            "description": "A unique identifier for this record, uniqueness boundary is within the folder",
+            "$ref": "#/definitions/Id"
+        },
+        "title": {
+            "description": "A short and descriptive title of this record",
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 3
+        },
+        "context": {
+            "description": "What is the issue that we're seeing that is motivating this decision or change?",
+            "type": "string",
+            "minLength": 10
+        },
+        "decision": {
+            "description": "What is the change that we're proposing and/or doing?",
+            "type": "string",
+            "minLength": 10
+        },
+        "consequences": {
+            "description": "What becomes easier or more difficult to do because of this change?",
+            "type": "string",
+            "minLength": 10
+        },
+        "links": {
+            "description": "Links to ADO work items, research, etc. The first link is required to be an ADO work item",
+            "type": "array",
+            "minItems": 1,
+            "items": [
+                {
+                    "$ref": "#/definitions/AzureDevOpsWorkItemLink"
+                }
+            ],
+            "additionalItems": {
+                "oneOf": [
+                    {
+                        "$ref": "#/definitions/AzureDevOpsWorkItemLink"
+                    },
+                    {
+                        "$ref": "#/definitions/WebLink"
+                    }
+                ]
+            }
+        },
+        "tags": {
+            "description": "Zero or more \"tags\" to help correlate this to a context or other ADRs",
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+                "type": "string",
+                "format": "^[\\w-]+$"
+            }
+        },
+        "state": {
+            "description": "What is the state, such as Proposed, Accepted, Rejected, Deprecated, Superseded?",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "The state name",
+                    "type": "string",
+                    "enum": [
+                        "Proposed",
+                        "Accepted",
+                        "Rejected",
+                        "Deprecated",
+                        "Superseded"
+                    ]
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": false,
+            "if": {
+                "properties": {
+                    "name": {
+                        "const": "Superseded"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "by_adr_id": {
+                        "description": "The superseded record's id",
+                        "$ref": "#/definitions/Id"
+                    }
+                },
+                "required": [
+                    "name",
+                    "by_adr_id"
+                ]
+            }
+        }
+    },
+    "required": [
+        "id",
+        "title",
+        "context",
+        "decision",
+        "consequences",
+        "links",
+        "tags",
+        "state"
+    ],
+    "additionalProperties": false
+}
